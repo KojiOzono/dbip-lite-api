@@ -48,7 +48,7 @@ Examples:
   ./dbip.sh stop
 
 Cron example (every 2nd day of month at 03:00):
-  0 3 2 * * /home/opc/dbip/dbip.sh update >> /home/opc/dbip/logs/cron.log 2>&1
+  0 3 2 * * /root/dbip/dbip.sh update >> /root/dbip/logs/cron.log 2>&1
 
 EOF
 }
