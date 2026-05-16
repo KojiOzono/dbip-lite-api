@@ -171,16 +171,14 @@ curl "http://localhost:8080/health"
 
 ## Performance
 
-Tested on a 1GB RAM VPS (single worker):
+Tested on a 1GB RAM VPS with NVMe storage (single worker):
 
-| Dataset      | Rows      | Import time |
-|--------------|-----------|-------------|
-| City Lite    | 8,061,679 | ~84s        |
-| ASN Lite     | 469,777   | ~8s         |
+| Metric | Result |
+|--------|--------|
+| Throughput | ~10,000 req/s |
+| Latency (batch 100) | ~15ms |
 
-Run `benchmark.py` to measure throughput on your environment.
-
-> Throughput varies significantly by storage type (NVMe vs HDD) and available RAM.
+Run `benchmark.py` to measure on your environment.
 
 ## Data Source
 
