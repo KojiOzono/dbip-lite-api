@@ -45,8 +45,8 @@ vi config.env
 ```
 
 ```env
-WORK_DIR=/root/dbip
-DB_PATH=/root/dbip/dbip.sqlite
+WORK_DIR=/root/dbip-lite-api
+DB_PATH=/root/dbip-lite-api/dbip.sqlite
 SERVER_HOST=0.0.0.0
 SERVER_PORT=8080
 SERVER_WORKERS=1
@@ -101,7 +101,7 @@ crontab -e
 ```
 
 ```cron
-0 3 2 * * /root/dbip/dbip.sh update >> /root/dbip/logs/cron.log 2>&1
+0 3 2 * * /root/dbip-lite-api/dbip.sh update >> /root/dbip-lite-api/logs/cron.log 2>&1
 ```
 
 DB-IP Lite is updated monthly. The `update` command handles stop → download → reimport → restart automatically.
@@ -166,7 +166,7 @@ curl "http://localhost:8080/health"
 ```
 
 ```json
-{"status": "ok", "db": "/root/dbip/dbip.sqlite"}
+{"status": "ok", "db": "/root/dbip-lite-api/dbip.sqlite"}
 ```
 
 ## Performance
@@ -204,8 +204,8 @@ Create `/etc/systemd/system/dbip.service`:
 After=network.target
 
 [Service]
-ExecStart=/root/dbip/venv/bin/uvicorn server:app
-WorkingDirectory=/root/dbip
+ExecStart=/root/dbip-lite-api/venv/bin/uvicorn server:app
+WorkingDirectory=/root/dbip-lite-api
 Restart=always
 
 [Install]
