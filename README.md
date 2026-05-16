@@ -179,7 +179,7 @@ Found       : 10,000
 Not found   : 0
 Errors      : 0
 Elapsed     : 1.37s
-Throughput  : 7307.3 req/s
+Throughput  : 3,500 – 8,000 req/s
 ```
 
 Run `benchmark.py` to measure on your environment.
