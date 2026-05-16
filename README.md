@@ -33,7 +33,7 @@ dbip-lite-api/
 ### 1. Clone
 
 ```bash
-git clone https://github.com/yourname/dbip-lite-api.git
+git clone https://github.com/KojiOzono/dbip-lite-api.git
 cd dbip-lite-api
 ```
 
@@ -45,8 +45,8 @@ vi config.env
 ```
 
 ```env
-WORK_DIR=/home/youruser/dbip      # working directory (venv, DB, logs, CSV)
-DB_PATH=/home/youruser/dbip/dbip.sqlite
+WORK_DIR=/root/dbip
+DB_PATH=/root/dbip/dbip.sqlite
 SERVER_HOST=0.0.0.0
 SERVER_PORT=8080
 SERVER_WORKERS=1
@@ -101,7 +101,7 @@ crontab -e
 ```
 
 ```cron
-0 3 2 * * /home/youruser/dbip-lite-api/dbip.sh update >> /home/youruser/dbip/logs/cron.log 2>&1
+0 3 2 * * /root/dbip/dbip.sh update >> /root/dbip/logs/cron.log 2>&1
 ```
 
 DB-IP Lite is updated monthly. The `update` command handles stop → download → reimport → restart automatically.
@@ -166,7 +166,7 @@ curl "http://localhost:8080/health"
 ```
 
 ```json
-{"status": "ok", "db": "/home/youruser/dbip/dbip.sqlite"}
+{"status": "ok", "db": "/root/dbip/dbip.sqlite"}
 ```
 
 ## Performance
