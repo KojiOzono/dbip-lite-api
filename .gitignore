@@ -1,0 +1,21 @@
+# Database
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+
+# Downloaded CSV files
+*.csv.gz
+
+# Python virtual environment
+venv/
+
+# Logs and runtime files
+logs/
+server.pid
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Local configuration (contains environment-specific paths)
+config.env
