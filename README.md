@@ -45,8 +45,8 @@ vi config.env
 ```
 
 ```env
-WORK_DIR=/root/dbip-lite-api
-DB_PATH=/root/dbip-lite-api/dbip.sqlite
+WORK_DIR=/root/dbip-lite-api   # Change to your path
+DB_PATH=/root/dbip-lite-api/dbip.sqlite   # Change to your path
 SERVER_HOST=0.0.0.0
 SERVER_PORT=8080
 SERVER_WORKERS=1
