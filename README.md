@@ -173,10 +173,14 @@ curl "http://localhost:8080/health"
 
 Tested on a 1GB RAM VPS with NVMe storage (single worker):
 
-| Metric | Result |
-|--------|--------|
-| Throughput | ~10,000 req/s |
-| Latency (batch 100) | ~15ms |
+```
+Total IPs   : 10,000
+Found       : 10,000
+Not found   : 0
+Errors      : 0
+Elapsed     : 1.37s
+Throughput  : 7307.3 req/s
+```
 
 Run `benchmark.py` to measure on your environment.
 
