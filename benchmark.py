@@ -11,6 +11,7 @@ import random
 import time
 import urllib.error
 import urllib.request
+import requests
 
 # ─────────────────────────────────────────
 # Configuration
@@ -27,7 +28,7 @@ def load_config(path):
 
 _config    = load_config(os.path.join(os.path.dirname(__file__), "config.env"))
 BASE_URL   = f"http://localhost:{_config.get('SERVER_PORT', '8080')}"
-TOTAL      = 10_000
+TOTAL      = 1000000
 BATCH_SIZE = 100
 
 # ─────────────────────────────────────────
@@ -39,16 +40,15 @@ def random_ipv4() -> str:
 # ─────────────────────────────────────────
 # POST /lookup
 # ─────────────────────────────────────────
+session = requests.Session()
+
 def bulk_lookup(ips: list) -> list:
-    data = json.dumps({"ips": ips}).encode("utf-8")
-    req  = urllib.request.Request(
+    resp = session.post(
         f"{BASE_URL}/lookup",
-        data=data,
-        headers={"Content-Type": "application/json"},
-        method="POST",
+        json={"ips": ips},
+        timeout=30,
     )
-    with urllib.request.urlopen(req, timeout=30) as resp:
-        return json.loads(resp.read())["results"]
+    return resp.json()["results"]
 
 # ─────────────────────────────────────────
 # Main

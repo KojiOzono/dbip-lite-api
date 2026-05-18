@@ -37,6 +37,7 @@ def get_conn() -> sqlite3.Connection:
         conn.execute("PRAGMA journal_mode = WAL")
         conn.execute("PRAGMA cache_size   = -32000")
         conn.execute("PRAGMA temp_store   = MEMORY")
+        conn.execute("PRAGMA wal_autocheckpoint = 0")  # ← 追加
         _local.conn = conn
     return _local.conn
 
