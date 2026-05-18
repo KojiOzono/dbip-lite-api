@@ -1,6 +1,6 @@
 #!/bin/bash
 # =============================================================
-# DB-IP Lite Management Script (SQLite edition)
+# DB-IP Lite Management Script (MMDB edition)
 # Usage: ./dbip.sh <command>
 # =============================================================
 set -uo pipefail
@@ -34,10 +34,9 @@ usage() {
 Usage: dbip.sh <command>
 
 Commands:
-  setup     Initial setup (create venv → download → import → start server)
-  update    Monthly update (stop → download → import → start)  ← for cron
-  download  Download CSV files only
-  import    Import into SQLite only (requires downloaded CSV files)
+  setup     Initial setup (create venv → download → start server)
+  update    Monthly update (stop → download → start)  ← for cron
+  download  Download MMDB files only
   start     Start the server only
   stop      Stop the server
 
@@ -63,7 +62,7 @@ cmd_setup_venv() {
         log "Creating Python venv..."
         python3 -m venv "$VENV_DIR"
         log "Installing dependencies..."
-        "$VENV_DIR/bin/pip" install --quiet fastapi "uvicorn[standard]"
+        "$VENV_DIR/bin/pip" install --quiet fastapi "uvicorn[standard]" maxminddb requests
         log "venv ready."
     fi
 }
@@ -80,48 +79,39 @@ activate_venv() {
 cmd_download() {
     local year_month
     year_month=$(date +%Y-%m)
-    local city_url="https://download.db-ip.com/free/dbip-city-lite-${year_month}.csv.gz"
-    local asn_url="https://download.db-ip.com/free/dbip-asn-lite-${year_month}.csv.gz"
+    local city_url="https://download.db-ip.com/free/dbip-city-lite-${year_month}.mmdb.gz"
+    local asn_url="https://download.db-ip.com/free/dbip-asn-lite-${year_month}.mmdb.gz"
 
-    log "Downloading DB-IP Lite (${year_month})"
+    log "Downloading DB-IP Lite MMDB (${year_month})"
     mkdir -p "$WORK_DIR"
     cd "$WORK_DIR"
 
     # Backup existing files
-    [[ -f dbip-city-lite.csv.gz ]] && mv dbip-city-lite.csv.gz dbip-city-lite.prev.csv.gz
-    [[ -f dbip-asn-lite.csv.gz  ]] && mv dbip-asn-lite.csv.gz  dbip-asn-lite.prev.csv.gz
+    [[ -f dbip-city-lite.mmdb ]] && mv dbip-city-lite.mmdb dbip-city-lite.prev.mmdb
+    [[ -f dbip-asn-lite.mmdb  ]] && mv dbip-asn-lite.mmdb  dbip-asn-lite.prev.mmdb
 
     # City Lite
-    if wget -q --show-progress -O dbip-city-lite.csv.gz "$city_url"; then
+    if wget -q --show-progress -O dbip-city-lite.mmdb.gz "$city_url"; then
+        gunzip -f dbip-city-lite.mmdb.gz
         log "City Lite downloaded."
     else
         log "WARN: City Lite download failed. Restoring previous file."
-        [[ -f dbip-city-lite.prev.csv.gz ]] && mv dbip-city-lite.prev.csv.gz dbip-city-lite.csv.gz
+        [[ -f dbip-city-lite.prev.mmdb ]] && mv dbip-city-lite.prev.mmdb dbip-city-lite.mmdb
         die "Failed to download City Lite: $city_url"
     fi
 
     # ASN Lite
-    if wget -q --show-progress -O dbip-asn-lite.csv.gz "$asn_url"; then
+    if wget -q --show-progress -O dbip-asn-lite.mmdb.gz "$asn_url"; then
+        gunzip -f dbip-asn-lite.mmdb.gz
         log "ASN Lite downloaded."
     else
         log "WARN: ASN Lite download failed. Restoring previous file."
-        [[ -f dbip-asn-lite.prev.csv.gz ]] && mv dbip-asn-lite.prev.csv.gz dbip-asn-lite.csv.gz
+        [[ -f dbip-asn-lite.prev.mmdb ]] && mv dbip-asn-lite.prev.mmdb dbip-asn-lite.mmdb
         die "Failed to download ASN Lite: $asn_url"
     fi
 
-    rm -f dbip-city-lite.prev.csv.gz dbip-asn-lite.prev.csv.gz
+    rm -f dbip-city-lite.prev.mmdb dbip-asn-lite.prev.mmdb
     log "Download complete."
-}
-
-# ─────────────────────────────────────────
-# Import
-# ─────────────────────────────────────────
-cmd_import() {
-    activate_venv
-    log "Importing into SQLite..."
-    cd "$WORK_DIR"
-    python3 "$SCRIPT_DIR/import_dbip.py"
-    log "Import complete."
 }
 
 # ─────────────────────────────────────────
@@ -176,7 +166,6 @@ case "$COMMAND" in
         log "=== setup start ==="
         cmd_setup_venv
         cmd_download
-        cmd_import
         cmd_start
         log "=== setup complete ==="
         ;;
@@ -185,7 +174,6 @@ case "$COMMAND" in
         log "=== update start ==="
         cmd_stop
         cmd_download
-        cmd_import
         cmd_start
         log "=== update complete ==="
         ;;
@@ -194,12 +182,6 @@ case "$COMMAND" in
         log "=== download start ==="
         cmd_download
         log "=== download complete ==="
-        ;;
-    import)
-        setup_log
-        log "=== import start ==="
-        cmd_import
-        log "=== import complete ==="
         ;;
     start)
         setup_log

@@ -1,15 +1,16 @@
 # dbip-lite-api
 
-A self-hosted IP geolocation API using [DB-IP Lite](https://db-ip.com/db/lite.php) and SQLite.  
+A self-hosted IP geolocation API using [DB-IP Lite](https://db-ip.com/db/lite.php) and MMDB.  
 Pure Python, no external database required.
 
 ## Features
 
-- Single shell script setup — download, import, and start in one command
+- Single shell script setup — download and start in one command
 - Batch lookup up to 1000 IPs per request
 - IPv4 + IPv6 support
 - Auto monthly update via cron
 - Runs on minimal hardware (tested on 1GB RAM VPS)
+- ~30,000 req/s throughput (MMDB memory-mapped, near-zero disk I/O)
 
 ## Requirements
 
@@ -22,10 +23,8 @@ Pure Python, no external database required.
 dbip-lite-api/
 ├── config.env          # Configuration (edit before setup)
 ├── dbip.sh             # Management script
-├── import_dbip.py      # CSV → SQLite importer
 ├── server.py           # FastAPI server
-├── benchmark.py        # Load test (10,000 random IPs)
-└── sample_lookup.py    # Quick viewer (100 random IPs)
+└── benchmark.py        # Load test (1,000,000 random IPs)
 ```
 
 ## Quick Start
@@ -45,8 +44,9 @@ vi config.env
 ```
 
 ```env
-WORK_DIR=/root/dbip-lite-api   # Change to your path
-DB_PATH=/root/dbip-lite-api/dbip.sqlite   # Change to your path
+WORK_DIR=/root/dbip-lite-api
+CITY_MMDB=/root/dbip-lite-api/dbip-city-lite.mmdb
+ASN_MMDB=/root/dbip-lite-api/dbip-asn-lite.mmdb
 SERVER_HOST=0.0.0.0
 SERVER_PORT=8080
 SERVER_WORKERS=1
@@ -59,10 +59,9 @@ bash dbip.sh setup
 ```
 
 This will:
-1. Create Python venv and install dependencies (`fastapi`, `uvicorn`)
-2. Download DB-IP City Lite + ASN Lite CSV files (~8M + ~470K rows)
-3. Import into SQLite (~90 seconds)
-4. Start the API server on port 8080
+1. Create Python venv and install dependencies (`fastapi`, `uvicorn`, `maxminddb`, `requests`)
+2. Download DB-IP City Lite + ASN Lite MMDB files
+3. Start the API server on port 8080
 
 ### 4. Test
 
@@ -72,13 +71,7 @@ Activate the venv first:
 source $WORK_DIR/venv/bin/activate
 ```
 
-Quick viewer (100 random IPs):
-
-```bash
-python sample_lookup.py
-```
-
-Load test (10,000 random IPs):
+Load test (1,000,000 random IPs):
 
 ```bash
 python benchmark.py
@@ -89,9 +82,8 @@ python benchmark.py
 ```bash
 bash dbip.sh start    # Start server
 bash dbip.sh stop     # Stop server
-bash dbip.sh update   # Stop → download latest CSV → reimport → start
-bash dbip.sh download # Download CSV only
-bash dbip.sh import   # Import CSV into SQLite only
+bash dbip.sh update   # Stop → download latest MMDB → start
+bash dbip.sh download # Download MMDB only
 ```
 
 ## Monthly Update (cron)
@@ -104,7 +96,7 @@ crontab -e
 0 3 2 * * /root/dbip-lite-api/dbip.sh update >> /root/dbip-lite-api/logs/cron.log 2>&1
 ```
 
-DB-IP Lite is updated monthly. The `update` command handles stop → download → reimport → restart automatically.
+DB-IP Lite is updated monthly. The `update` command handles stop → download → restart automatically.
 
 ## API
 
@@ -166,20 +158,20 @@ curl "http://localhost:8080/health"
 ```
 
 ```json
-{"status": "ok", "db": "/root/dbip-lite-api/dbip.sqlite"}
+{"status": "ok", "city_mmdb": "/root/dbip-lite-api/dbip-city-lite.mmdb", "asn_mmdb": "/root/dbip-lite-api/dbip-asn-lite.mmdb"}
 ```
 
 ## Performance
 
-Tested on a 1GB RAM VPS with NVMe storage (single worker):
+Tested on a 1GB RAM VPS (single worker):
 
 ```
-Total IPs   : 10,000
-Found       : 10,000
-Not found   : 0
+Total IPs   : 1,000,000
+Found       : 862,032
+Not found   : 137,968
 Errors      : 0
-Elapsed     : 1.37s
-Throughput  : 3,500 – 8,000 req/s
+Elapsed     : 32.76s
+Throughput  : ~30,000 req/s
 ```
 
 Run `benchmark.py` to measure on your environment.

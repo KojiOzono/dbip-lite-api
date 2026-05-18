@@ -1,16 +1,13 @@
 #!/usr/bin/env python3
 """
 benchmark.py - DB-IP Lite load test
-
 Generates random IPv4 addresses and sends them in batches
 to POST /lookup, measuring throughput and response time.
 """
-import json
 import os
 import random
 import time
-import urllib.error
-import urllib.request
+
 import requests
 
 # ─────────────────────────────────────────
@@ -28,8 +25,13 @@ def load_config(path):
 
 _config    = load_config(os.path.join(os.path.dirname(__file__), "config.env"))
 BASE_URL   = f"http://localhost:{_config.get('SERVER_PORT', '8080')}"
-TOTAL      = 1000000
-BATCH_SIZE = 100
+TOTAL      = 1_000_000
+BATCH_SIZE = 1000
+
+# ─────────────────────────────────────────
+# HTTP session (connection reuse)
+# ─────────────────────────────────────────
+session = requests.Session()
 
 # ─────────────────────────────────────────
 # Random IPv4 generator
@@ -40,8 +42,6 @@ def random_ipv4() -> str:
 # ─────────────────────────────────────────
 # POST /lookup
 # ─────────────────────────────────────────
-session = requests.Session()
-
 def bulk_lookup(ips: list) -> list:
     resp = session.post(
         f"{BASE_URL}/lookup",
@@ -57,9 +57,7 @@ def main():
     print(f"Sending {TOTAL:,} random IPv4 addresses in batches of {BATCH_SIZE}")
     print(f"Target: {BASE_URL}")
     print()
-
     ips = [random_ipv4() for _ in range(TOTAL)]
-
     total_ok       = 0
     total_error    = 0
     total_notfound = 0
@@ -73,23 +71,18 @@ def main():
             results = bulk_lookup(batch)
             elapsed = time.time() - t0
             total_elapsed += elapsed
-
             ok       = sum(1 for r in results if "error" not in r)
             notfound = sum(1 for r in results if r.get("error") == "not found")
             error    = sum(1 for r in results if "error" in r and r.get("error") != "not found")
-
             total_ok       += ok
             total_notfound += notfound
             total_error    += error
-
             print(f"  batch {i+1:5d}/{batches} | ok={ok:3d} not_found={notfound:3d} err={error:3d} | {elapsed*1000:.1f}ms")
-
         except Exception as e:
             print(f"  batch {i+1:5d}/{batches} | FAILED: {e}")
             total_error += BATCH_SIZE
 
     rps = TOTAL / total_elapsed if total_elapsed > 0 else 0
-
     print()
     print("=" * 50)
     print(f"Total IPs   : {TOTAL:,}")
