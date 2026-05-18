@@ -4,7 +4,7 @@ DB-IP Lite MMDB API Server
 
 Endpoints:
   GET  /lookup?ip=1.2.3.4
-  POST /lookup  {"ips": ["1.2.3.4", ...]}   (max 1000 IPs per request)
+  POST /lookup  {"ips": ["1.2.3.4", ...]}   (max 10000 IPs per request)
   GET  /health
 """
 import ipaddress
@@ -68,8 +68,8 @@ class BulkRequest(BaseModel):
 
 @app.post("/lookup")
 def lookup_post(req: BulkRequest):
-    if len(req.ips) > 1000:
-        raise HTTPException(status_code=400, detail="Maximum 1000 IPs per request")
+    if len(req.ips) > 10000:
+        raise HTTPException(status_code=400, detail="Maximum 10000 IPs per request")
     return {"results": [lookup_one(ip) for ip in req.ips]}
 
 

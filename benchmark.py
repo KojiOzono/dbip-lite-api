@@ -25,7 +25,7 @@ def load_config(path):
 
 _config    = load_config(os.path.join(os.path.dirname(__file__), "config.env"))
 BASE_URL   = f"http://localhost:{_config.get('SERVER_PORT', '8080')}"
-TOTAL      = 1_000_000
+TOTAL      = 1000000
 BATCH_SIZE = 1000
 
 # ─────────────────────────────────────────
