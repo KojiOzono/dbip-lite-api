@@ -165,14 +165,14 @@ curl "http://localhost:8080/health"
 
 Tested on a 1GB RAM VPS (single worker):
 
-```
-Total IPs   : 1,000,000
-Found       : 862,032
-Not found   : 137,968
-Errors      : 0
-Elapsed     : 32.76s
-Throughput  : ~30,000 req/s
-```
+| Batch size | Total IPs | Throughput     |
+|------------|-----------|----------------|
+| 1          | 10,000    | ~640 req/s     |
+| 100        | 10,000    | ~16,000 req/s  |
+| 1,000      | 100,000   | ~28,000 req/s  |
+| 1,000      | 1,000,000 | ~30,000 req/s  |
+
+Throughput scales with batch size. For best performance, use batch size 1,000.
 
 Run `benchmark.py` to measure on your environment.
 
